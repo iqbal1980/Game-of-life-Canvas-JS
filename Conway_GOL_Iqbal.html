@@ -19,7 +19,7 @@
             
 			var canvas = document.getElementById('canvas');
             var context = canvas.getContext('2d');
-            var pixelSpacing = 10; //should be a multiple of the canvas width and height
+            var pixelSpacing = 5; //should be a multiple of the canvas width and height
             var generations = 10000; //generations to run
 
             var livingColor = "rgb(150,29,28)";
@@ -30,10 +30,10 @@
             var toBeAddedArray = new Array();
 
             var drawCellInGrid = function (x, y, color) {
-                var newX = x * pixelSpacing;
-                var newY = y * pixelSpacing;
+                var newX = x * pixelSpacing - 1;
+                var newY = y * pixelSpacing - 1;
                 context.fillStyle = color;
-                context.fillRect(newX, newY, -pixelSpacing, -pixelSpacing);
+                context.fillRect(newX , newY   , -pixelSpacing + 2, -pixelSpacing +2);
             }
 
 
@@ -69,7 +69,7 @@
 
             var drawRandomCells = function () {
                 for (t = 0; t < Math.floor((Math.random() * 15) + 1); t++) {
-                    randomNumberOfCells = Math.floor((Math.random() * (Math.floor(((canvas.width / pixelSpacing) + (canvas.height / pixelSpacing)) * 0.8 + Math.floor((Math.random() * 10) + 1)))) + 1);
+                    randomNumberOfCells = Math.floor((Math.random() * (Math.floor(((canvas.width / pixelSpacing) * (canvas.height / pixelSpacing)) * 0.8 + Math.floor((Math.random() * 10) + 1)))) + 1);
                     for (j = 0; j < randomNumberOfCells; j++) {
                         var randomCellX = Math.floor((Math.random() * (canvas.width / pixelSpacing)) + 1);
                         var randomCellY = Math.floor((Math.random() * (canvas.height / pixelSpacing)) + 1);
@@ -84,6 +84,16 @@
                     var elementExists = false;
                     for (l = 0; l < livingCellsArray.length; l++) {
                         if (livingCellsArray[l][0] == cell[0] && livingCellsArray[l][1] == cell[1]) {
+                            elementExists = true;
+                        }
+                    }
+                    return elementExists;
+                }
+				
+				function cellIsInToBeAddedCellsArray(cell) {
+                    var elementExists = false;
+                    for (l = 0; l < toBeAddedArray.length; l++) {
+                        if (toBeAddedArray[l][0] == cell[0] && toBeAddedArray[l][1] == cell[1]) {
                             elementExists = true;
                         }
                     }
@@ -152,12 +162,91 @@
                     if (counter < generations) {
                         window.setTimeout(function () {
                             gameOfLife();
+                        }, 10);
+                    }
+                }
+				
+				function updateArrayAndGridOptimized() {
+				//alert('hola');
+                    livingCellsArray = [];
+					//alert(livingCellsArray);
+                    livingCellsArray = (toBeAddedArray);
+					//alert(toBeAddedArray);
+					//alert(livingCellsArray);
+                    counter++;
+                    if (counter < generations) {
+                        window.setTimeout(function () {
+                            gameOfLifeOptimized();
                         }, 50);
                     }
                 }
 
+				
+				function checkRulesForGOLOptimized(cell) {
+							//alert("2)--- idx_x =" + cell[0] + "|" +"idx_y =" + cell[1]);
+							//alert(">>>>"+toBeAddedArray);
+                             
+                                if (numberOfNeighbouringCells(cell) == 3) {
+                                    makeCellAlive(cell);
+									if(cellIsInToBeAddedCellsArray(cell) ==false) {
+										toBeAddedArray.push(cell);
+									}
+                                    //drawGrid(pixelSpacing);
+                                }
+                             
+				}
 
-
+				function gameOfLifeOptimized() {
+				//alert(toBeAddedArray);
+					toBeAddedArray = [];
+					//alert(toBeAddedArray);
+					
+                    var deadCells = 0;
+					for(counter2 = 0; counter2 < livingCellsArray.length; counter2++) {
+					
+						var idx_x = livingCellsArray[counter2][0];
+						var idx_y = livingCellsArray[counter2][1];
+						 
+						//alert("idx_x =" + idx_x + "|" +"idx_y =" + idx_y);
+						//alert("neighbours = " + numberOfNeighbouringCells([idx_x, idx_y]));
+						if(numberOfNeighbouringCells([idx_x, idx_y]) == 2 || numberOfNeighbouringCells([idx_x, idx_y]) == 3) {
+							if(cellIsInToBeAddedCellsArray([idx_x, idx_y]) ==false) {
+								surviveCell([idx_x, idx_y]);
+								toBeAddedArray.push([idx_x, idx_y]);
+								//drawGrid(pixelSpacing);
+							}
+							var cell = [idx_x, idx_y];
+							//var newCellItSelf =  cell;
+							var newCellML = [(cell[0] - 1), (cell[1])];
+							var newCellUL = [(cell[0] - 1), (cell[1] - 1)];
+							var newCellUM = [(cell[0]), (cell[1] - 1)];
+							var newCellUR = [(cell[0] + 1), (cell[1] - 1)];
+							var newCellMR = [(cell[0] + 1), (cell[1])];
+							var newCellDR = [(cell[0] + 1), (cell[1] + 1)];
+							var newCellDM = [(cell[0]), (cell[1] + 1)];
+							var newCellDL = [(cell[0] - 1), (cell[1] + 1)];
+							//checkRulesForGOLOptimized(newCellItSelf);
+							checkRulesForGOLOptimized(newCellML);
+							checkRulesForGOLOptimized(newCellUL);
+							checkRulesForGOLOptimized(newCellUM);
+							checkRulesForGOLOptimized(newCellUR);
+							checkRulesForGOLOptimized(newCellMR);
+							checkRulesForGOLOptimized(newCellDR);
+							checkRulesForGOLOptimized(newCellDM);
+							checkRulesForGOLOptimized(newCellDL);	
+						}
+						
+						if(numberOfNeighbouringCells([idx_x, idx_y]) < 2   || numberOfNeighbouringCells([idx_x, idx_y]) > 3 ) {
+							//alert('b');
+							killLivingCell([idx_x, idx_y]);
+                            //drawGrid(pixelSpacing);
+						}
+					}
+					//alert(toBeAddedArray);
+					updateArrayAndGridOptimized();
+					  
+				}
+				
                 function gameOfLife() {
                     toBeAddedArray = [];
                     var deadCells = 0;
@@ -168,17 +257,17 @@
                                 if (numberOfNeighbouringCells([idx_x, idx_y]) == 3) {
                                     makeCellAlive([idx_x, idx_y]);
                                     toBeAddedArray.push([idx_x, idx_y]);
-                                    drawGrid(pixelSpacing);
+                                    //drawGrid(pixelSpacing);
                                 }
                             } else {
                                 if (numberOfNeighbouringCells([idx_x, idx_y]) < 2 || numberOfNeighbouringCells([idx_x, idx_y]) > 3) {
                                     killLivingCell([idx_x, idx_y]);
-                                    drawGrid(pixelSpacing);
+                                    //drawGrid(pixelSpacing);
                                 }
                                 if (numberOfNeighbouringCells([idx_x, idx_y]) == 2 || numberOfNeighbouringCells([idx_x, idx_y]) == 3) {
                                     surviveCell([idx_x, idx_y]);
                                     toBeAddedArray.push([idx_x, idx_y]);
-                                    drawGrid(pixelSpacing);
+                                    //drawGrid(pixelSpacing);
                                 }
                             }
                         }
@@ -188,9 +277,25 @@
 
 
 			//The game begins here
-            drawRandomCells();
-            drawGrid(pixelSpacing);
-            gameOfLife();
+           drawRandomCells();
+            
+		 /*
+			drawCellInGrid(10, 10, livingColor);
+            var randomCell1 = [10, 10];
+            livingCellsArray.push(randomCell1); 
+			
+			drawCellInGrid(10, 11, livingColor);
+           var randomCell2 = [10, 11];
+            livingCellsArray.push(randomCell2);
+			
+			drawCellInGrid(10, 12, livingColor);
+           var randomCell3 = [10, 12];
+            livingCellsArray.push(randomCell3);
+			 */
+						
+			drawGrid(pixelSpacing);
+            //gameOfLife();//<-- same speed regardless of dead cells, better performance for small grids
+			gameOfLifeOptimized();//<--starts slow but accelerates as cells die, better performance for large grids
         </script>
     </body>
 
