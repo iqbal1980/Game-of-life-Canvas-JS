@@ -14,12 +14,12 @@
     
     <body style="text-align: center;">
         <div id="generations"></div>
-        <canvas id="canvas" height="450" width="450"></canvas>
+        <canvas id="canvas" height="1000" width="1000"></canvas>
         <script type="text/javascript" charset="utf-8">
             
 			var canvas = document.getElementById('canvas');
             var context = canvas.getContext('2d');
-            var pixelSpacing = 5; //should be a multiple of the canvas width and height
+            var pixelSpacing = 10; //should be a multiple of the canvas width and height
             var generations = 10000; //generations to run
 
             var livingColor = "rgb(150,29,28)";
@@ -49,14 +49,6 @@
 
             var drawGrid = function (stepPixelPrecision) {
                 pixelSpacing = stepPixelPrecision;
-
-                for (i = 0; i <= canvas.width; i += stepPixelPrecision) {
-                    drawLine(i, 0, i, canvas.height, "#ffffff");
-                }
-                for (i = 0; i <= canvas.height; i += stepPixelPrecision) {
-                    drawLine(0, i, canvas.width, i, "#ffffff");
-                }
-                /////////////////////////////////////////////////////////////
                 for (i = 0; i <= canvas.width; i += stepPixelPrecision) {
                     drawLine(i, 0, i, canvas.height, "#cccccc");
                 }
@@ -68,16 +60,20 @@
 
 
             var drawRandomCells = function () {
-                for (t = 0; t < Math.floor((Math.random() * 15) + 1); t++) {
-                    randomNumberOfCells = Math.floor((Math.random() * (Math.floor(((canvas.width / pixelSpacing) * (canvas.height / pixelSpacing)) * 0.8 + Math.floor((Math.random() * 10) + 1)))) + 1);
-                    for (j = 0; j < randomNumberOfCells; j++) {
-                        var randomCellX = Math.floor((Math.random() * (canvas.width / pixelSpacing)) + 1);
-                        var randomCellY = Math.floor((Math.random() * (canvas.height / pixelSpacing)) + 1);
-                        drawCellInGrid(randomCellX, randomCellY, livingColor);
-                        var randomCell = [randomCellX, randomCellY];
-                        livingCellsArray.push(randomCell);
+				var myWidth = canvas.width / pixelSpacing;
+				var myHeight = canvas.height / pixelSpacing;
+				   for (j1 = 0; j1 < myWidth; j1++) {
+						for (j2 = 0; j2 < myHeight; j2++) {
+							test=Math.random();
+							if(test> 0.8) {
+	
+								var randomCell = [j1,j2];
+								drawCellInGrid(j1,j2,livingColor);
+								livingCellsArray[livingCellsArray.length] = [j1,j2] ;
+							}
+						}
+						 
                     }
-                }
             }
 
                 function cellIsInLivingCellsArray(cell) {
@@ -162,7 +158,7 @@
                     if (counter < generations) {
                         window.setTimeout(function () {
                             gameOfLife();
-                        }, 10);
+                        }, 50);
                     }
                 }
 				
@@ -177,7 +173,7 @@
                     if (counter < generations) {
                         window.setTimeout(function () {
                             gameOfLifeOptimized();
-                        }, 50);
+                        }, 10);
                     }
                 }
 
